@@ -21,8 +21,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV VENV_DIR=.venv
 RUN chown -R $USERNAME $VENV_DIR && chmod -R 755 $VENV_DIR
 
-ENV BANK_TO_BOOKS_PROJECT=.
-RUN chown -R $USERNAME $BANK_TO_BOOKS_PROJECT
+ENV STATEMENTS_TO_BOOKS_PROJECT=.
+RUN chown -R $USERNAME $STATEMENTS_TO_BOOKS_PROJECT
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"

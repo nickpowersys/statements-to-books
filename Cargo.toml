@@ -1,5 +1,5 @@
 [package]
-name = "bank_to_books"
+name = "statements_to_books"
 version = "0.1.0"
 edition = "2021"
 

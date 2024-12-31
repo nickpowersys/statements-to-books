@@ -1,5 +1,5 @@
 [project]
-name = "bank-to-books"
+name = "statements-to-books"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
