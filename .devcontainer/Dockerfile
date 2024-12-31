@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/vscode/devcontainers/python:3.13
+FROM mcr.microsoft.com/devcontainers/rust:bullseye
 COPY --from=ghcr.io/astral-sh/uv:0.5.13 /uv /uvx /bin/
 ARG USERNAME=vscode
 
