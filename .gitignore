@@ -1,6 +1,7 @@
-# {"updated": "2024-12-29 13:57:49.378284", "ignores": ["Python", "Rust"]}
+# {"updated": "2025-01-01 18:00:29.546355", "ignores": ["Python", "Rust", "macOS"]}
 # SUCCESS: Python - https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
 # SUCCESS: Rust - https://raw.githubusercontent.com/github/gitignore/master/Rust.gitignore
+# SUCCESS: macOS - https://raw.githubusercontent.com/github/gitignore/master/Global/macOS.gitignore
 
 ### Python begin
 # Byte-compiled / optimized / DLL files
@@ -199,3 +200,33 @@ Cargo.lock
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 ### Rust end
+### macOS begin
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+### macOS end
