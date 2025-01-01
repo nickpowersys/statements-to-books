@@ -1,7 +1,8 @@
-# {"updated": "2025-01-01 18:00:29.546355", "ignores": ["Python", "Rust", "macOS"]}
+# {"updated": "2025-01-01 18:11:30.359930", "ignores": ["Python", "Rust", "macOS", "Linux"]}
 # SUCCESS: Python - https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
 # SUCCESS: Rust - https://raw.githubusercontent.com/github/gitignore/master/Rust.gitignore
 # SUCCESS: macOS - https://raw.githubusercontent.com/github/gitignore/master/Global/macOS.gitignore
+# SUCCESS: Linux - https://raw.githubusercontent.com/github/gitignore/master/Global/Linux.gitignore
 
 ### Python begin
 # Byte-compiled / optimized / DLL files
@@ -230,3 +231,19 @@ Temporary Items
 .apdisk
 
 ### macOS end
+### Linux begin
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+### Linux end
