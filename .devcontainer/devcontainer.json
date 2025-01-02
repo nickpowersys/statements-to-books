@@ -1,25 +1,14 @@
 {
-    "build": { "dockerfile": "Dockerfile", "context": ".." },
-    "containerUser": "vscode",
-    "remoteUser": "vscode",
-    "postCreateCommand": "bash .devcontainer/post_create.sh",
-    "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
-    "workspaceFolder": "/app",
-    "customizations": {
-      "vscode": {
-        "extensions": [
-          "ms-python.black-formatter",
-          "rust-lang.rust-analyzer",
-          "charliermarsh.ruff"
-        ],
-        "settings": {
-          "editor.formatOnSave": true
-        }
-      }
-    },
-    "features": {
-      "ghcr.io/devcontainers/features/sshd:1": {
-        "version": "latest"
-      }
+  "build": { "dockerfile": "Dockerfile", "context": ".." },
+  "containerUser": "vscode",
+  "remoteUser": "root",
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer"
+      ]
     }
   }
+}
