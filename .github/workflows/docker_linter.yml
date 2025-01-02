@@ -10,9 +10,9 @@ jobs:
         uses: actions/checkout@v2
       - name: Build an image from Dockerfile
         run: |
-          docker build -t built-image:scan .
+          docker build . -f .devcontainer/Dockerfile -t built-image:scan
       - name: Run dockle
-        uses: goodwithtech/dockle-action@main
+        uses: nickpowersys/dockle-action@main
         with:
           image: 'built-image:scan'
           format: 'list'
