@@ -14,8 +14,12 @@ build-backend = "maturin"
 
 [tool.maturin]
 python-source = "python"
+module-name = "statements_to_books._lib_name"
 
 [dependency-groups]
 dev = [
     "maturin>=1.8.1",
 ]
+
+[tool.uv]
+package = false
