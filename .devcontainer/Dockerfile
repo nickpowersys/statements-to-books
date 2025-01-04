@@ -2,6 +2,10 @@ FROM mcr.microsoft.com/devcontainers/rust:bullseye
 COPY --from=ghcr.io/astral-sh/uv:0.5.13 /uv /uvx /bin/
 ARG USERNAME=vscode
 
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends python3 python3-pip python3-venv && \
+  rm -rf /var/lib/apt/lists/*
+
 RUN python3 -m pip install pipx --no-cache-dir
 RUN python3 -m pipx ensurepath
 RUN pipx install pre-commit
