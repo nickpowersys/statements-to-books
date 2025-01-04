@@ -1,6 +1,6 @@
 use crate::io_utils::glob_files_to_process;
 use clap::Parser;
-use glob::PatternError;
+use pyo3::prelude::*;
 use std::path::PathBuf;
 
 pub mod io_utils;
@@ -13,9 +13,24 @@ struct Cli {
 
 fn main() {
     let args = Cli::parse();
-    println!("The pdf_dir is {}!", &args.pdf_dir);
-    println!("The txt_dir is {}!", &args.txt_dir);
     let input_file_ext = "pdf";
-    let pdf_file_paths: Result<Vec<PathBuf>, PatternError> =
-        Ok(glob_files_to_process(&args.pdf_dir, input_file_ext).unwrap());
+    let pdf_file_paths: Vec<PathBuf> = glob_files_to_process(&args.pdf_dir, input_file_ext)?;
+    print!("{:?}", pdf_file_paths);
+
+    fn get_page_count(pdf_file_paths: Vec<PathBuf>) -> Result<f64, Box<dyn std::error::Error>> {
+        Python::with_gil(|py| {
+            let pdf_parser = PyModule::import(py, "statements_to_books.pdf_parser")
+                .expect("unable to import 'pdf_parser'")
+                .getattr("loads")
+                .unwrap();
+            let result: f64 = pdf_parser
+                .getattr("page_count_of_pdf")?
+                .call1((&pdf_file_paths[0],))?
+                .extract()?;
+            Ok(result)
+        })
+    }
+
+    let pg_count = get_page_count(pdf_file_paths);
+    println!("{:?}", pg_count);
 }

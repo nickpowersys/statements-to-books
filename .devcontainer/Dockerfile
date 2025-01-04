@@ -18,6 +18,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv venv && uv sync --group dev
 
+RUN echo "/root/.local/share/uv/python/cpython-3.11.11-linux-aarch64-gnu/lib" | sudo tee /etc/ld.so.conf.d/uv_python.conf
+RUN sudo ldconfig
+
 ENV VENV_DIR=.venv
 RUN chown -R $USERNAME $VENV_DIR && chmod -R 755 $VENV_DIR
 
