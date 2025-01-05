@@ -2,7 +2,7 @@
   "build": { "dockerfile": "Dockerfile", "context": ".." },
   "containerUser": "vscode",
   "remoteUser": "root",
-  "postStartCommand": ".devcontainer/postStart.sh",
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder} && sudo ldconfig",
   "workspaceFolder": "/app",
   "containerEnv": {
     "LD_LIBRARY_PATH": "/root/.local/share/uv/python/cpython-3.11.11-linux-aarch64-gnu/lib/libpython3.11.so"

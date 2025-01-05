@@ -1,7 +1,6 @@
 FROM mcr.microsoft.com/devcontainers/rust:bullseye
 COPY --from=ghcr.io/astral-sh/uv:0.5.13 /uv /uvx /bin/
 ARG USERNAME=vscode
-#ARG LD_LIBRARY_PATH=/root/.local/share/uv/python/cpython-3.11.11-linux-aarch64-gnu/lib/libpython3.11.so
 
 WORKDIR /app
 
@@ -31,10 +30,9 @@ RUN chown -R $USERNAME $STATEMENTS_TO_BOOKS_PROJECT
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-SHELL ["/bin/bash", "-c", "source .venv/bin/activate"]
+RUN echo "/root/.local/share/uv/python/cpython-3.11.11-linux-aarch64-gnu/lib" | sudo tee /etc/ld.so.conf.d/uv_python.conf
 
-#RUN echo "/root/.local/share/uv/python/cpython-3.11.11-linux-aarch64-gnu/lib" | sudo tee /etc/ld.so.conf.d/uv_python.conf
-#RUN sudo ldconfig
+SHELL ["/bin/bash", "-c", "source .venv/bin/activate"]
 
 ENTRYPOINT []
 
