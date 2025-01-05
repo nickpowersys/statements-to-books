@@ -14,7 +14,6 @@ pub(crate) fn glob_files_to_process(
                     Err(e) => println!("{:?}", e),
                 }
             }
-            println!("{:?}", file_paths);
             Ok(file_paths)
         }
         Err(error) => Err(error),
