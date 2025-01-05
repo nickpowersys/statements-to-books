@@ -15,3 +15,10 @@ repos:
     -   id: conventional-pre-commit
         stages: [commit-msg]
         args: [--strict]
+-   repo: local
+    hooks:
+    -   id: cargo-fmt
+        name: cargo-fmy
+        entry: ./hooks/cargo-fmt.sh
+        types: [rust]
+        language: script

@@ -247,3 +247,9 @@ Temporary Items
 .nfs*
 
 ### Linux end
+
+## Data begin
+
+*.pdf
+
+## Data end

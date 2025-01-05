@@ -18,6 +18,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv venv && uv sync --group dev
 
+RUN uv tool install pipx
+RUN uv tool run pipx install pre-commit
+
 ENV VENV_DIR=.venv
 RUN chown -R $USERNAME $VENV_DIR && chmod -R 755 $VENV_DIR
 
@@ -26,6 +29,8 @@ RUN chown -R $USERNAME $STATEMENTS_TO_BOOKS_PROJECT
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
+
+RUN echo "/root/.local/share/uv/python/cpython-3.11.11-linux-aarch64-gnu/lib" | sudo tee /etc/ld.so.conf.d/uv_python.conf
 
 SHELL ["/bin/bash", "-c", "source .venv/bin/activate"]
 
