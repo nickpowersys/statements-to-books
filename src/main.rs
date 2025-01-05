@@ -19,18 +19,19 @@ fn main() {
     println!("{:?}", pdf_file_paths);
 
     pyo3::prepare_freethreaded_python();
-    fn get_page_count(pdf_file_paths: Vec<PathBuf>) -> Result<f64, Box<dyn std::error::Error>> {
+    fn get_page_count(pdf_file_path: PathBuf) -> Result<f64, Box<dyn std::error::Error>> {
         Python::with_gil(|py| {
             let pdf_parser = PyModule::import(py, "statements_to_books.pdf_parser")
                 .expect("unable to import 'pdf_parser'");
             let result: f64 = pdf_parser
                 .getattr("page_count_of_pdf")?
-                .call1((&pdf_file_paths[0],))?
+                .call1((&pdf_file_path,))?
                 .extract()?;
             Ok(result)
         })
     }
 
-    let pg_count = get_page_count(pdf_file_paths);
+    let pdf_file_path: PathBuf = pdf_file_paths[0].clone();
+    let pg_count = get_page_count(pdf_file_path);
     println!("{:?}", pg_count);
 }
