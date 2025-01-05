@@ -14,7 +14,8 @@ struct Cli {
 fn main() {
     let args = Cli::parse();
     let input_file_ext = "pdf";
-    let pdf_file_paths: Vec<PathBuf> = glob_files_to_process(&args.pdf_dir, input_file_ext)?;
+    let pdf_file_paths: Vec<PathBuf> =
+        glob_files_to_process(&args.pdf_dir, input_file_ext).unwrap();
     print!("{:?}", pdf_file_paths);
 
     fn get_page_count(pdf_file_paths: Vec<PathBuf>) -> Result<f64, Box<dyn std::error::Error>> {
