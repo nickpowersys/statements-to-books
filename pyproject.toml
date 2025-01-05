@@ -18,7 +18,7 @@ module-name = "statements_to_books._lib_name"
 
 [dependency-groups]
 dev = [
-    "maturin>=1.8.1",
+    "maturin[patchelf]>=1.8.1",
 ]
 
 [tool.uv]
