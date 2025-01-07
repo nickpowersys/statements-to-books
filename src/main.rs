@@ -2,6 +2,7 @@ use crate::io_utils::glob_files_to_process;
 use crate::pyo3_pdf_service::{extract_text_from_page, get_page_count};
 use clap::Parser;
 use regex::{Match, Regex};
+use rusty_money::{iso, Money};
 use std::error::Error;
 use std::ops::Range;
 use std::path::PathBuf;
@@ -60,8 +61,9 @@ fn main() {
             break;
         }
     }
-    println!(
-        "Beginning Balance raw: {:?}",
-        begin_balance_raw.unwrap().as_str()
-    );
+
+    let mut beginning_balance_amt: String = String::from(begin_balance_raw.unwrap().as_str());
+    beginning_balance_amt.retain(|c| c != ',');
+    let begin_bal_usd = Money::from_str(&beginning_balance_amt, iso::USD).unwrap();
+    println!("Beginning Balance: {:?}", beginning_balance_amt);
 }
