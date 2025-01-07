@@ -45,25 +45,36 @@ fn main() {
             }
         };
 
-        //println!("{}", pdf_page_str);
+        println!("{}", pdf_page_str);
         pdf_page_strs.push(pdf_page_str);
     }
-    let begin_balance_re = Regex::new(r"(?m)^Beginning\sBalance\s+[$]*(.+)$").unwrap();
-    let mut begin_balance_raw: Option<Match> = None;
+    let begin_balance_re = Regex::new(r"(?m)^Beginning\sBalance.+[$](.+)$").unwrap();
+    let end_balance_re = Regex::new(r"(?m)^Ending\sBalance.+[$](.+)$").unwrap();
+    let mut begin_balance_line: Option<Match> = None;
+    let mut end_balance_line: Option<Match> = None;
     let page_str_iter = pdf_page_strs.iter().enumerate();
     for page_str in page_str_iter {
-        if begin_balance_raw.is_none() {
-            println!("Parsing page {}", page_str.0 + 1);
+        println!("Parsing page {}", page_str.0 + 1);
+        if begin_balance_line.is_none() {
             if let Some(line) = begin_balance_re.captures_iter(page_str.1).next() {
-                begin_balance_raw = line.get(1);
+                begin_balance_line = line.get(1);
             }
-        } else {
+        }
+        if end_balance_line.is_none() {
+            if let Some(line) = end_balance_re.captures_iter(page_str.1).next() {
+                end_balance_line = line.get(1);
+            }
+        }
+        if begin_balance_line.is_some() & end_balance_line.is_some() {
             break;
         }
     }
 
-    let mut beginning_balance_amt: String = String::from(begin_balance_raw.unwrap().as_str());
+    let mut beginning_balance_amt: String = String::from(begin_balance_line.unwrap().as_str());
     beginning_balance_amt.retain(|c| c != ',');
+    let mut end_balance_amt: String = String::from(end_balance_line.unwrap().as_str());
+    end_balance_amt.retain(|c| c != ',');
     let begin_bal_usd = Money::from_str(&beginning_balance_amt, iso::USD).unwrap();
     println!("Beginning Balance: {:?}", beginning_balance_amt);
+    println!("Ending Balance: {:?}", end_balance_amt);
 }
