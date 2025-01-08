@@ -6,6 +6,7 @@ use rusty_money::{iso, Money};
 use std::error::Error;
 use std::ops::Range;
 use std::path::PathBuf;
+use std::str;
 
 pub mod io_utils;
 pub mod pyo3_pdf_service;
@@ -45,13 +46,20 @@ fn main() {
             }
         };
 
-        println!("{}", pdf_page_str);
+        //println!("{}", pdf_page_str);
         pdf_page_strs.push(pdf_page_str);
     }
     let begin_balance_re = Regex::new(r"(?m)^Beginning\sBalance.+[$](.+)$").unwrap();
     let end_balance_re = Regex::new(r"(?m)^Ending\sBalance.+[$](.+)$").unwrap();
+    let wire_payment_re = Regex::new(r"(?ms)(\d{2}\/\d{2}.+?^CO Entry.+)$").unwrap();
     let mut begin_balance_line: Option<Match> = None;
     let mut end_balance_line: Option<Match> = None;
+    let mut deposit_trns_byte_offset_opt: Option<usize>;
+    let mut deposit_trns: Match;
+    let mut deposit_trns_strs = Vec::<String>::new();
+    let mut start_byte_offset: usize;
+    let mut end_byte_offset: usize;
+    let mut match_slice: &str;
     let page_str_iter = pdf_page_strs.iter().enumerate();
     for page_str in page_str_iter {
         println!("Parsing page {}", page_str.0 + 1);
@@ -65,6 +73,23 @@ fn main() {
                 end_balance_line = line.get(1);
             }
         }
+
+        start_byte_offset = 0;
+        deposit_trns_byte_offset_opt =
+            wire_payment_re.shortest_match_at(page_str.1, start_byte_offset);
+        while deposit_trns_byte_offset_opt.is_some() {
+            end_byte_offset = deposit_trns_byte_offset_opt.unwrap();
+
+            match_slice = &page_str.1[start_byte_offset..end_byte_offset];
+            deposit_trns = wire_payment_re
+                .find(match_slice)
+                .expect(".is_some() must not be true.");
+            deposit_trns_strs.push(String::from(deposit_trns.as_str()));
+            start_byte_offset = end_byte_offset + 1;
+            deposit_trns_byte_offset_opt =
+                wire_payment_re.shortest_match_at(page_str.1, start_byte_offset);
+        }
+
         if begin_balance_line.is_some() & end_balance_line.is_some() {
             break;
         }
@@ -75,6 +100,9 @@ fn main() {
     let mut end_balance_amt: String = String::from(end_balance_line.unwrap().as_str());
     end_balance_amt.retain(|c| c != ',');
     let begin_bal_usd = Money::from_str(&beginning_balance_amt, iso::USD).unwrap();
+    let end_bal_usd = Money::from_str(&end_balance_amt, iso::USD).unwrap();
     println!("Beginning Balance: {:?}", beginning_balance_amt);
     println!("Ending Balance: {:?}", end_balance_amt);
+    println!("{:#?}", deposit_trns_strs);
+    let change_in_bal = end_bal_usd - begin_bal_usd;
 }
