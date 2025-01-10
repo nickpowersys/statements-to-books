@@ -1,10 +1,7 @@
 use crate::io_utils::glob_files_to_process;
 use crate::pyo3_pdf_service::{extract_text_from_page, get_page_count};
-use chrono::format::ParseError;
-use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime};
 use clap::Parser;
 use fastnum::{decimal::*, *};
-use polars::prelude::*;
 use regex::{Match, Regex};
 use std::error::Error;
 use std::ops::Range;
@@ -124,9 +121,8 @@ fn main() {
 
     //let change_in_bal = end_bal_usd - begin_bal_usd;
     let wire_deposit_amt_re = Regex::new(r"(?ms)^CO Entry\s+([$]*)(.+)$").unwrap();
-    let mut dates: Vec<NaiveDate>;
     for deposit_captures in deposit_trns_captures_vec.iter() {
-        println!(deposit_captures);
+        println!("{:?}", deposit_captures);
         // if let Some(cg) = end_balance_re.captures_iter(page_str.1).next() {
         //     line.get(1)
         // }
