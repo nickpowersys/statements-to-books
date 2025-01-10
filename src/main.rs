@@ -1,8 +1,11 @@
 use crate::io_utils::glob_files_to_process;
 use crate::pyo3_pdf_service::{extract_text_from_page, get_page_count};
+use chrono::format::ParseError;
+use chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime};
 use clap::Parser;
+use fastnum::{decimal::*, *};
+use polars::prelude::*;
 use regex::{Match, Regex};
-use rusty_money::{iso, Money};
 use std::error::Error;
 use std::ops::Range;
 use std::path::PathBuf;
@@ -51,43 +54,50 @@ fn main() {
     }
     let begin_balance_re = Regex::new(r"(?m)^Beginning\sBalance.+[$](.+)$").unwrap();
     let end_balance_re = Regex::new(r"(?m)^Ending\sBalance.+[$](.+)$").unwrap();
-    let wire_payment_re = Regex::new(r"(?ms)(\d{2}\/\d{2}.+?^CO Entry.+)$").unwrap();
+    let wire_payment_re =
+        Regex::new(r"(?ms)(?<date>\d{2}\/\d{2})(.+?)CO\sEntry[$]?(?<amount_with_commas>.+)$")
+            .unwrap();
     let mut begin_balance_line: Option<Match> = None;
     let mut end_balance_line: Option<Match> = None;
     let mut deposit_trns_byte_offset_opt: Option<usize>;
-    let mut deposit_trns: Match;
-    let mut deposit_trns_strs = Vec::<String>::new();
+    //let mut deposit_trns: Match;
+    let mut deposit_trns_captures: regex::Captures;
+    let mut deposit_trns_captures_vec: Vec<regex::Captures> = vec![];
+    //let mut deposit_trns_strs = Vec::<String>::new();
     let mut start_byte_offset: usize;
     let mut end_byte_offset: usize;
     let mut match_slice: &str;
     let page_str_iter = pdf_page_strs.iter().enumerate();
-    for page_str in page_str_iter {
-        println!("Parsing page {}", page_str.0 + 1);
+    for (page_num, page_str) in page_str_iter {
+        println!("Parsing page {}", page_num + 1);
         if begin_balance_line.is_none() {
-            if let Some(line) = begin_balance_re.captures_iter(page_str.1).next() {
+            if let Some(line) = begin_balance_re.captures_iter(page_str).next() {
                 begin_balance_line = line.get(1);
             }
         }
         if end_balance_line.is_none() {
-            if let Some(line) = end_balance_re.captures_iter(page_str.1).next() {
+            if let Some(line) = end_balance_re.captures_iter(page_str).next() {
                 end_balance_line = line.get(1);
             }
         }
 
         start_byte_offset = 0;
         deposit_trns_byte_offset_opt =
-            wire_payment_re.shortest_match_at(page_str.1, start_byte_offset);
+            wire_payment_re.shortest_match_at(page_str, start_byte_offset);
         while deposit_trns_byte_offset_opt.is_some() {
             end_byte_offset = deposit_trns_byte_offset_opt.unwrap();
-
-            match_slice = &page_str.1[start_byte_offset..end_byte_offset];
-            deposit_trns = wire_payment_re
-                .find(match_slice)
-                .expect(".is_some() must not be true.");
-            deposit_trns_strs.push(String::from(deposit_trns.as_str()));
+            match_slice = &page_str[start_byte_offset..end_byte_offset];
+            //deposit_trns = wire_payment_re
+            //    .find(match_slice)
+            //    .expect(".is_some() must not be true.");
+            deposit_trns_captures = wire_payment_re
+                .captures(match_slice)
+                .expect(".is_some() must not be true");
+            deposit_trns_captures_vec.push(deposit_trns_captures);
+            //deposit_trns_strs.push(String::from(deposit_trns.as_str()));
             start_byte_offset = end_byte_offset + 1;
             deposit_trns_byte_offset_opt =
-                wire_payment_re.shortest_match_at(page_str.1, start_byte_offset);
+                wire_payment_re.shortest_match_at(page_str, start_byte_offset);
         }
 
         if begin_balance_line.is_some() & end_balance_line.is_some() {
@@ -99,10 +109,30 @@ fn main() {
     beginning_balance_amt.retain(|c| c != ',');
     let mut end_balance_amt: String = String::from(end_balance_line.unwrap().as_str());
     end_balance_amt.retain(|c| c != ',');
-    let begin_bal_usd = Money::from_str(&beginning_balance_amt, iso::USD).unwrap();
-    let end_bal_usd = Money::from_str(&end_balance_amt, iso::USD).unwrap();
-    println!("Beginning Balance: {:?}", beginning_balance_amt);
-    println!("Ending Balance: {:?}", end_balance_amt);
-    println!("{:#?}", deposit_trns_strs);
-    let change_in_bal = end_bal_usd - begin_bal_usd;
+    struct Deposit {
+        date: String,
+        amt: fastnum::decimal::Decimal<4>,
+    }
+    let deposits: Vec<Deposit>;
+    let begin_bal_usd: fastnum::decimal::Decimal<4> =
+        D256::from_str(&beginning_balance_amt, Context::default()).unwrap();
+    println!("begin_bal_usd {}", begin_bal_usd);
+    let ending_bal_usd: fastnum::decimal::Decimal<4> =
+        D256::from_str(&end_balance_amt, Context::default()).unwrap();
+    println!("ending_bal_usd {}", ending_bal_usd);
+    println!("{:#?}", deposit_trns_captures_vec);
+
+    //let change_in_bal = end_bal_usd - begin_bal_usd;
+    let wire_deposit_amt_re = Regex::new(r"(?ms)^CO Entry\s+([$]*)(.+)$").unwrap();
+    let mut dates: Vec<NaiveDate>;
+    for deposit_captures in deposit_trns_captures_vec.iter() {
+        println!(deposit_captures);
+        // if let Some(cg) = end_balance_re.captures_iter(page_str.1).next() {
+        //     line.get(1)
+        // }
+        // for (deposit_amt_raw) in wire_deposit_amt_re.find(&deposit_trns) {
+        //     println!("Deposit amount {:?}", deposit_amt_raw);
+        // }
+    }
+    for deposit_captures in deposit_trns_captures_vec {}
 }
