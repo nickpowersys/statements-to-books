@@ -69,18 +69,29 @@ fn main() {
     let mut end_byte_offset: usize;
     let mut match_slice: &str;
     let page_str_iter = pdf_page_strs.iter().enumerate();
-    // fn extract_capture_for_re<'a>(re_expr: regex::regex::string,
-    //     page_str: &String) -> 'a Vec<regex::Captures> {
-    //     let mut start_byte_offset: usize = 0;
-    //     let mut trans_byte_offset_opt: Option<usize>;
-    //     let mut end_byte_offset: usize;
-    //     trans_byte_offset_opt = re_expr.shortest_match_at(page_str, start_byte_offset);
-    //     while trans_byte_offset_opt.is_some() {
-    //         end_byte_offset = trans_byte_offset_opt.unwrap();
-    //         match_slice = &page_str[start_byte_offset..end_byte_offset];
-    //     }
-
-    // }
+    fn extract_captures_for_re<'a>(
+        re_expr: Regex,
+        page_str: &'a str,
+        captures_vec: &'a mut Vec<regex::Captures<'a>>,
+    ) -> &'a Vec<regex::Captures<'a>> {
+        let mut start_byte_offset: usize = 0;
+        let mut trans_byte_offset_opt: Option<usize>;
+        let mut end_byte_offset: usize;
+        let mut match_slice: &str;
+        let mut trans_captures: regex::Captures;
+        trans_byte_offset_opt = re_expr.shortest_match_at(page_str, start_byte_offset);
+        while trans_byte_offset_opt.is_some() {
+            end_byte_offset = trans_byte_offset_opt.unwrap();
+            match_slice = &page_str[start_byte_offset..end_byte_offset];
+            trans_captures = re_expr
+                .captures(match_slice)
+                .expect(".is_some() must not be true");
+            captures_vec.push(trans_captures);
+            start_byte_offset = end_byte_offset + 1;
+            trans_byte_offset_opt = re_expr.shortest_match_at(page_str, start_byte_offset);
+        }
+        captures_vec
+    };
     for (page_num, page_str) in page_str_iter {
         println!("Parsing page {}", page_num + 1);
         if begin_balance_line.is_none() {
