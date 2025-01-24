@@ -5,7 +5,7 @@ use crate::parse_utils::{
 };
 use crate::pyo3_pdf_service::{extract_text_from_page, get_page_count};
 use clap::Parser;
-use fastnum::decimal::{Context, Decimal, D256};
+use fastnum::decimal::{Context, D256};
 use parse_utils::{
     extract_online_payment_captures_for_re, extract_transfers_out_captures_for_re, TransferOut,
 };
