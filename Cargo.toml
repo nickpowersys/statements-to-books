@@ -5,7 +5,9 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.23", features = ["derive"] }
+datafusion = "44.0.0"
 fastnum = "0.1.9"
 glob = "0.3.2"
 pyo3 = "0.23.3"
 regex = "1.11.1"
+tokio = { version = "1.43.0", features = ["rt-multi-thread"] }
