@@ -1,14 +1,14 @@
 use crate::io_utils::glob_files_to_process;
 use crate::parse_utils::{
     extract_card_purchase_captures_for_re, extract_deposit_captures_for_re,
-    parse_begin_or_end_bal_amt, DebitCardPurchase, Deposit, OnlinePayment,
+    extract_online_payment_captures_for_re, extract_transfers_out_captures_for_re,
+    parse_begin_or_end_bal_amt, parse_statement_begin_or_end_year, DebitCardPurchase, Deposit,
+    OnlinePayment, TransferOut,
 };
 use crate::pyo3_pdf_service::{extract_text_from_page, get_page_count};
+use chrono::Datelike;
 use clap::Parser;
 use fastnum::decimal::{Context, D256};
-use parse_utils::{
-    extract_online_payment_captures_for_re, extract_transfers_out_captures_for_re, TransferOut,
-};
 use regex::Regex;
 use std::error::Error;
 use std::ops::Range;
@@ -56,12 +56,23 @@ fn main() {
         println!("{}", pdf_page_str);
         pdf_page_strs.push(pdf_page_str);
     }
+    let statement_year_re = Regex::new(r"(?<begin_year>\d{4})\s+through\s").unwrap();
+    let mut statement_year: i32 = 0;
+    //let statement_end_year_re = Regex::new(r"\s+through\s+(?<end_year>\d{4})$").unwrap();
+    //let mut statement_end_year: Option<u16> = None;
+    let mut one_indexed_page: usize;
     let begin_balance_re = Regex::new(r"(?m)^Beginning\sBalance.+[$](.+)$").unwrap();
     let mut begin_bal_usd: Option<fastnum::decimal::Decimal<4>> = None;
     let end_balance_re = Regex::new(r"(?m)^Ending\sBalance.+[$](.+)$").unwrap();
     let mut ending_bal_usd: Option<fastnum::decimal::Decimal<4>> = None;
     let mut page_deposits_vec: Vec<Deposit> = vec![];
     let mut deposits_vec: Vec<Deposit> = vec![];
+    let mut transaction_month_str: &str;
+    let mut transaction_month: u32;
+    let mut transaction_day_str: &str;
+    let mut transaction_day: u32;
+    let mut transaction_year: i32;
+    let mut transaction_amount: fastnum::decimal::Decimal<4>;
     let mut page_purchases_vec: Vec<DebitCardPurchase> = vec![];
     let mut card_purchases_vec: Vec<DebitCardPurchase> = vec![];
     let mut page_payments_vec: Vec<OnlinePayment> = vec![];
@@ -72,7 +83,13 @@ fn main() {
     let page_str_iter = pdf_page_strs.iter().enumerate();
 
     for (page_num, page_str) in page_str_iter {
-        println!("Parsing page {}", page_num + 1);
+        one_indexed_page = page_num + 1;
+        println!("Parsing page {:#?}", one_indexed_page);
+        if statement_year == 0 {
+            if let Some(year_capture) = statement_year_re.captures_iter(page_str).next() {
+                statement_year = parse_statement_begin_or_end_year(year_capture);
+            };
+        }
         if begin_bal_usd.is_none() {
             if let Some(bal_capture) = begin_balance_re.captures_iter(page_str).next() {
                 begin_bal_usd = Some(parse_begin_or_end_bal_amt(bal_capture));
@@ -84,53 +101,57 @@ fn main() {
             }
         }
 
-        page_deposits_vec = extract_deposit_captures_for_re(page_str);
+        page_deposits_vec = extract_deposit_captures_for_re(page_str, statement_year);
         if !page_deposits_vec.is_empty() {
             for dep in &page_deposits_vec {
+                transaction_month = dep.date.month();
+                transaction_day = dep.date.day();
+                transaction_year = dep.date.year();
+                transaction_amount = dep.amount;
                 println!(
-                    "Page {} Deposit {}: {:.2}",
-                    page_num + 1,
-                    dep.date,
-                    dep.amount
+                    "Page {one_indexed_page} Deposit {transaction_month}/{transaction_day}/{transaction_year} {transaction_amount:.2}",
                 );
             }
             deposits_vec.extend(page_deposits_vec);
         }
 
-        page_purchases_vec = extract_card_purchase_captures_for_re(page_str);
+        page_purchases_vec = extract_card_purchase_captures_for_re(page_str, statement_year);
         if !page_purchases_vec.is_empty() {
             for purch in &page_purchases_vec {
+                transaction_month = purch.date.month();
+                transaction_day = purch.date.day();
+                transaction_year = purch.date.year();
+                transaction_amount = purch.amount;
                 println!(
-                    "Page {} Purchase {}: {:.2}",
-                    page_num + 1,
-                    purch.date,
-                    purch.amount
+                    "Page {one_indexed_page} Debit Card Purchase {transaction_month}/{transaction_day}/{transaction_year} {transaction_amount:.2}",
                 );
             }
             card_purchases_vec.extend(page_purchases_vec);
         }
 
-        page_payments_vec = extract_online_payment_captures_for_re(page_str);
+        page_payments_vec = extract_online_payment_captures_for_re(page_str, statement_year);
         if !page_payments_vec.is_empty() {
             for payment in &page_payments_vec {
+                transaction_month = payment.date.month();
+                transaction_day = payment.date.day();
+                transaction_year = payment.date.year();
+                transaction_amount = payment.amount;
                 println!(
-                    "Page {} Payment {}: {:.2}",
-                    page_num + 1,
-                    payment.date,
-                    payment.amount
+                    "Page {one_indexed_page} Online Payment {transaction_month}/{transaction_day}/{transaction_year} {transaction_amount:.2}",
                 );
             }
             payments_vec.extend(page_payments_vec);
         }
 
-        page_transfers_out_vec = extract_transfers_out_captures_for_re(page_str);
+        page_transfers_out_vec = extract_transfers_out_captures_for_re(page_str, statement_year);
         if !page_transfers_out_vec.is_empty() {
             for transfer in &page_transfers_out_vec {
+                transaction_month = transfer.date.month();
+                transaction_day = transfer.date.day();
+                transaction_year = transfer.date.year();
+                transaction_amount = transfer.amount;
                 println!(
-                    "Page {} Transfer out {}: {:.2}",
-                    page_num + 1,
-                    transfer.date,
-                    transfer.amount
+                    "Page {one_indexed_page} Transfer Out {transaction_month}/{transaction_day}/{transaction_year} {transaction_amount:.2}",
                 );
             }
             transfers_out_vec.extend(page_transfers_out_vec);
@@ -140,13 +161,15 @@ fn main() {
         // println!("Final card_purchases_vec {:#?}", card_purchases_vec);
         // println!("Final payments_vec {:#?}", payments_vec);
     }
+    if statement_year == 0 {
+        panic!("Statement start year not parsed")
+    }
     let revenue_usd: fastnum::decimal::Decimal<4> = if !deposits_vec.is_empty() {
         deposits_vec.iter().map(|invoice| invoice.amount).sum()
     } else {
         D256::from_str("0.00", Context::default()).unwrap()
     };
 
-    // deposits_vec.iter().map(|invoice| invoice.amount).sum();
     let card_purchases_usd: fastnum::decimal::Decimal<4> = card_purchases_vec
         .iter()
         .map(|expense| expense.amount)
@@ -155,6 +178,7 @@ fn main() {
         payments_vec.iter().map(|expense| expense.amount).sum();
     let expenses_usd: fastnum::decimal::Decimal<4> = card_purchases_usd + online_payments_usd;
     let profit_usd = revenue_usd - expenses_usd;
+    println!("Statement year {:>15}", format!("{:?}", statement_year));
     println!("Revenue {:>22}", format!("{:.2}", revenue_usd));
     println!("Expenses {:>21}", format!("{:.2}", expenses_usd));
     if revenue_usd > expenses_usd {
