@@ -56,10 +56,9 @@ fn main() {
         println!("{}", pdf_page_str);
         pdf_page_strs.push(pdf_page_str);
     }
+
     let statement_year_re = Regex::new(r"(?<begin_year>\d{4})\s+through\s").unwrap();
     let mut statement_year: i32 = 0;
-    //let statement_end_year_re = Regex::new(r"\s+through\s+(?<end_year>\d{4})$").unwrap();
-    //let mut statement_end_year: Option<u16> = None;
     let mut one_indexed_page: usize;
     let begin_balance_re = Regex::new(r"(?m)^Beginning\sBalance.+[$](.+)$").unwrap();
     let mut begin_bal_usd: Option<fastnum::decimal::Decimal<4>> = None;
