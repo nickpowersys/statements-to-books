@@ -1,8 +1,8 @@
 ##  Motivation and Description
 
-I wanted to extract the transactions and determine the profit based on revenues and expenses.
+I wanted to extract the transactions from my business checking account and determine the profit based on revenues and expenses.
 
-I found that my business checking account does not provide statements in a delimited text format that can be imported easily.
+I found that my bank does not provide statements in a delimited text format that can be imported easily.
 
 The statements-to-books application is a CLI built with PyO3/maturin.
 
