@@ -4,9 +4,9 @@ I wanted to extract the transactions from my business checking account and deter
 
 I found that my bank does not provide statements in a delimited text format that can be imported easily.
 
-The statements-to-books application is a CLI built with PyO3/maturin.
+The statements-to-books application is a CLI developed and built in a Docker Devcontainer with Cargo and PyO3/maturin.
 
-The source is written primarily in Rust.
+The source is written primarily in Rust (94%).
 
 ## How Account Statements are Processed
 
